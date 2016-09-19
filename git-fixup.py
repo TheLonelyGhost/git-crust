@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 git-fixup - Automate the workflow of 'git commit {--fixup,--squash}'
 
@@ -41,6 +41,7 @@ import logging
 import subprocess
 import optparse
 import sys
+import re
 
 
 class Error(Exception):
@@ -117,8 +118,13 @@ class Fixup(object):
 
         if commit:
             for commit_id, files in changes.items():
+                clean_commit_id = self.remove_coloring(commit_id)
                 self.git(["commit", "--squash" if squash else "--fixup",
-                          commit_id] + list(files), capture=False)
+                          clean_commit_id] + list(files), capture=False)
+
+    def remove_coloring(self, str):
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+        return ansi_escape.sub("", str)
 
     def rebase_all(self):
         commits = [
@@ -140,7 +146,7 @@ class Fixup(object):
         if not parents:
             raise Error("could not find target for fixup/squashes: {0!r}"
                         .format(fixups))
-        self.git(["rebase", "-i", "--autosquash", parents[-1][0] + "^"],
+        self.git(["rebase", "-i", "--autosquash", self.remove_coloring(parents[-1][0]) + "^"],
                  capture=False)
 
     def main(self, args):
