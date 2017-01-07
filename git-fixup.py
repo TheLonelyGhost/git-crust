@@ -45,7 +45,7 @@ import re
 
 
 class Error(Exception):
-    """gix-fixup error"""
+    """git-fixup error"""
 
 
 class Fixup(object):
